@@ -1,4 +1,4 @@
-﻿<!-- aosomi@gmail.com -->
+<!-- aosomi@gmail.com -->
 
 <html><head><title>☆ ((¯`º«°•.¤.•° DOTHIPE °•.¤.•º»º´¯)) ☆</title> 
 <meta http-equiv=Content-Type content=\"text/html; charset=UTF-8\"> 
@@ -99,7 +99,7 @@ height: '390',
 width: '640',
 videoId: location.search.substring(1),
 playerVars: {
-'playsinline': 1, 'autoplay': 1, 'autostart': 1,
+'playsinline': 1, 'autostart': 1,
 },
 events: {
 'onReady': onPlayerReady,
@@ -117,16 +117,17 @@ function onPlayerReady(event) {
 // 5. The API calls this function when the player's state changes.
 //The function indicates that when playing a video (state=1),
 //the player should play for six seconds and then stop.
-//var done = false;
-//function onPlayerStateChange(event) {
-//  if (event.data == YT.PlayerState.PLAYING && !done) {
-//setTimeout(stopVideo, 60000000);
-//done = true;
-//  }
-//}
-//function stopVideo() {
-//  player.stopVideo();
-//}
+
+var done = false;
+function onPlayerStateChange(event) {
+  if (event.data == YT.PlayerState.PLAYING && !done) {
+setTimeout(stopVideo, 6000000);
+done = true;
+  }
+}
+function stopVideo() {
+  player.stopVideo();
+}
  
 </script> 
 
