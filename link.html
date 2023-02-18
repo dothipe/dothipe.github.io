@@ -1,53 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Hiển thị liên kết tải tài liệu khi người dùng đăng ký kênh YouTube</title>
-	<style>
-		.download-button {
-			display: none;
-			background-color: #4CAF50;
-			color: white;
-			padding: 10px;
-			border: none;
-			border-radius: 5px;
-			cursor: pointer;
-		}
-	</style>
+	<title>Download content after subscribing to YouTube channel</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script>
-		$(document).ready(function() {
-		  // Replace YOUR_CHANNEL_ID and YOUR_API_KEY with your own values
-		  var channelId = 'UCXNtbNAsZSYyGjHMq4y_Zww';
-		  var apiKey = 'AIzaSyBkbsveXMqycACRd01QJLlyhYq2CTYiSWQ';
-		  var apiUrl = 'https://www.googleapis.com/youtube/v3/subscriptions';
-		  
-		  $.get(apiUrl, {
-		    part: 'snippet',
-		    channelId: channelId,
-		    mine: true,
-		    key: apiKey
-		  }, function(data) {
-		    var subscribed = false;
-		    $.each(data.items, function(index, item) {
-		      if (item.snippet.channelId == channelId) {
-		        subscribed = true;
-		      }
-		    });
-		    if (subscribed) {
-		      // User has subscribed to your channel
-		      $('#subscribe-status').html('DA DANG KY KENH');
-		      $('.download-button').show();
-		    } else {
-		      // User has not subscribed to your channel
-		      $('#subscribe-status').html('HAY DANG KY KENH');
-		    }
-		  });
-		});
-	</script>
 </head>
 <body>
-	<h1>KIEM TRA</h1>
-	<p id="#subscribe-status"></p>
-	<button class="download-button">DOWNLOAD</button>
+	<h1>Download content after subscribing to YouTube channel</h1>
+	<p>To download the content, please subscribe to my YouTube channel:</p>
+	<a href="#" id="subscribe-youtube">Subscribe on YouTube</a>
+	<p id="download-link" style="display:none;"><a href="https://example.com/download">Download content</a></p>
+
+	<script>
+		// Replace the YouTube channel ID with your own
+		var channelId = 'UCXNtbNAsZSYyGjHMq4y_Zww';
+
+		// Check if the user is already subscribed to the YouTube channel
+		function checkSubscription() {
+			gapi.client.youtube.subscriptions.list({
+				part: 'snippet',
+				mine: true,
+				forChannelId: channelId
+			}).then(function(response) {
+				// User is subscribed, show download link
+				$('#download-link').show();
+			}, function(error) {
+				// User is not subscribed, show subscribe button
+				$('#subscribe-youtube').show();
+			});
+		}
+
+		// Initialize the YouTube API
+		function init() {
+			gapi.client.init({
+				apiKey: 'AIzaSyBkbsveXMqycACRd01QJLlyhYq2CTYiSWQ', // Replace with your own YouTube API key
+				discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+				clientId: '581830580093-v462t47ch44575jmkoem82epnr8gojb1.apps.googleusercontent.com', // Replace with your own Google API client ID
+				scope: 'https://www.googleapis.com/auth/youtube.force-ssl'
+			}).then(function() {
+				// Check if the user is already subscribed on page load
+				checkSubscription();
+			}, function(error) {
+				console.error(error);
+			});
+		}
+
+		// Handle subscribe button click
+		$('#subscribe-youtube').click(function() {
+			gapi.auth2.getAuthInstance().signIn().then(function() {
+				gapi.client.youtube.subscriptions.insert({
+					part: 'snippet',
+					resource: {
+						snippet: {
+							resourceId: {
+								channelId: channelId
+							}
+						}
+					}
+				}).then(function(response) {
+					// User subscribed, show download link
+					$('#download-link').show();
+					$('#subscribe-youtube').hide();
+				}, function(error) {
+					console.error(error);
+				});
+			});
+		});
+	</script>
+	<script src="https://apis.google.com/js/api.js?onload=init"></script>
 </body>
 </html>
