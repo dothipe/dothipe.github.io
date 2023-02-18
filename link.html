@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Hiển thị liên kết tải tài liệu khi người dùng đăng ký kênh YouTube</title>
+	<style>
+		.download-button {
+			display: none;
+			background-color: #4CAF50;
+			color: white;
+			padding: 10px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+	</style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		$(document).ready(function() {
+		  // Replace YOUR_CHANNEL_ID and YOUR_API_KEY with your own values
+		  var channelId = 'UCXNtbNAsZSYyGjHMq4y_Zww';
+		  var apiKey = 'AIzaSyBkbsveXMqycACRd01QJLlyhYq2CTYiSWQ';
+		  var apiUrl = 'https://www.googleapis.com/youtube/v3/subscriptions';
+		  
+		  $.get(apiUrl, {
+		    part: 'snippet',
+		    channelId: channelId,
+		    mine: true,
+		    key: apiKey
+		  }, function(data) {
+		    var subscribed = false;
+		    $.each(data.items, function(index, item) {
+		      if (item.snippet.channelId == channelId) {
+		        subscribed = true;
+		      }
+		    });
+		    if (subscribed) {
+		      // User has subscribed to your channel
+		      $('#subscribe-status').html('DA DANG KY KENH');
+		      $('.download-button').show();
+		    } else {
+		      // User has not subscribed to your channel
+		      $('#subscribe-status').html('HAY DANG KY KENH');
+		    }
+		  });
+		});
+	</script>
+</head>
+<body>
+	<h1>KIEM TRA</h1>
+	<p id="#subscribe-status"></p>
+	<button class="download-button">DOWNLOAD</button>
+</body>
+</html>
