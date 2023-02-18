@@ -15,19 +15,22 @@
 		var channelId = 'UCXNtbNAsZSYyGjHMq4y_Zww';
 
 		// Check if the user is already subscribed to the YouTube channel
-		function checkSubscription() {
-			gapi.client.youtube.subscriptions.list({
-				part: 'snippet',
-				mine: true,
-				forChannelId: channelId
-			}).then(function(response) {
-				// User is subscribed, show download link
-				$('#download-link').show();
-			}, function(error) {
-				// User is not subscribed, show subscribe button
-				$('#subscribe-youtube').show();
-			});
-		}
+function checkSubscription() {
+    setTimeout(function() {
+        gapi.client.youtube.subscriptions.list({
+            part: 'snippet',
+            mine: true,
+            forChannelId: channelId
+        }).then(function(response) {
+            // User is subscribed, show download link
+            $('#download-link').show();
+        }, function(error) {
+            // User is not subscribed, show subscribe button
+            $('#subscribe-youtube').show();
+        });
+    }, 5000); // Wait for 5 seconds before checking subscription status
+}
+
 
 		// Initialize the YouTube API
 		function init() {
