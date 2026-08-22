@@ -1,0 +1,6 @@
+{
+  "name": "VSCS.ASIA",
+  "description": "Cổng thông tin Ná cao su Thể thao Việt Nam - Hệ thống Giải đấu Toàn quốc VSC & Câu lạc bộ Nội bộ NCS",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Montserrat", sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  
+  --color-vsc-gold: #f59e0b;
+  --color-vsc-gold-dark: #b45309;
+  --color-ncs-blue: #2563eb;
+  --color-ncs-teal: #14b8a6;
+  --color-polish-bg: #0A0C10;
+  --color-polish-nav: #0D1117;
+}
+
+@layer base {
+  body {
+    background-color: #0A0C10; /* Professional Polish deep base */
+    color: #cbd5e1; /* slate-300 */
+  }
+}
+
+/* Custom scrollbars for a modern dashboard look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D1117;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
