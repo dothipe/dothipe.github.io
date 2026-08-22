@@ -123,7 +123,7 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
                   <Trophy className="w-6 h-6" />
                 </div>
                 <span className="text-[10px] font-bold font-mono tracking-widest text-amber-400 uppercase bg-amber-500/5 px-2.5 py-1 rounded-md border border-amber-500/10">
-                  vscs.asia/vsc
+                  vscs.asia/vsc/
                 </span>
               </div>
 
@@ -173,7 +173,7 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
                   <Target className="w-6 h-6" />
                 </div>
                 <span className="text-[10px] font-bold font-mono tracking-widest text-blue-400 uppercase bg-blue-500/5 px-2.5 py-1 rounded-md border border-blue-500/10">
-                  vscs.asia/ncs
+                  vscs.asia/ncs/
                 </span>
               </div>
 
