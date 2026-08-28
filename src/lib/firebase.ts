@@ -9,6 +9,7 @@ import {
   query, 
   orderBy, 
   limit, 
+  where,
   Firestore 
 } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
@@ -113,7 +114,8 @@ export async function fetchVscTournaments(): Promise<Tournament[]> {
 
 export async function fetchVscAthletes(): Promise<Athlete[]> {
   try {
-    const querySnapshot = await getDocs(collection(vscDb, 'athletes'));
+    const q = query(collection(vscDb, 'athletes'), limit(150));
+    const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) {
       console.log("No athletes found in Firestore, falling back to mockAthletes.");
       return mockAthletes;
@@ -151,7 +153,8 @@ export async function fetchVscAthletes(): Promise<Athlete[]> {
 
 export async function fetchVscClubs(): Promise<Club[]> {
   try {
-    const querySnapshot = await getDocs(collection(vscDb, 'clubs'));
+    const q = query(collection(vscDb, 'clubs'), limit(100));
+    const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) {
       console.log("No clubs found in Firestore, falling back to mockClubs.");
       return mockClubs;
@@ -222,19 +225,39 @@ function saveLocalChallenges(chals: PracticeChallenge[]) {
 
 export async function fetchNcsPracticeLogs(userId?: string): Promise<PracticeLog[]> {
   try {
-    const querySnapshot = await getDocs(collection(ncsDb, 'vsc_training_sessions'));
-    if (querySnapshot.empty) {
+    let docsList: any[] = [];
+    if (userId) {
+      // Direct fast queries to avoid scanning the entire collection
+      const q1 = query(collection(ncsDb, 'vsc_training_sessions'), where('userId', '==', userId), limit(100));
+      const q2 = query(collection(ncsDb, 'vsc_training_sessions'), where('uid', '==', userId), limit(100));
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      
+      const seenIds = new Set<string>();
+      snap1.forEach(d => {
+        if (!seenIds.has(d.id)) {
+          seenIds.add(d.id);
+          docsList.push(d);
+        }
+      });
+      snap2.forEach(d => {
+        if (!seenIds.has(d.id)) {
+          seenIds.add(d.id);
+          docsList.push(d);
+        }
+      });
+    } else {
+      const q = query(collection(ncsDb, 'vsc_training_sessions'), limit(100));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(d => docsList.push(d));
+    }
+
+    if (docsList.length === 0) {
       return [];
     }
 
     const logs: PracticeLog[] = [];
-    querySnapshot.forEach((docSnap) => {
+    docsList.forEach((docSnap) => {
       const data = docSnap.data();
-      
-      // Filter by userId if specified to display only logged-in athlete's data
-      if (userId && data.userId !== userId && data.uid !== userId) {
-        return;
-      }
 
       // Calculate hits and shots from native fields shown in the database screenshot (Image 3)
       const shotsArray = data.shots || [];
@@ -305,7 +328,8 @@ export async function saveNcsPracticeLog(log: Omit<PracticeLog, 'id'>): Promise<
 
 export async function fetchNcsChallenges(): Promise<PracticeChallenge[]> {
   try {
-    const querySnapshot = await getDocs(collection(ncsDb, 'vsc_pk_challenges'));
+    const q = query(collection(ncsDb, 'vsc_pk_challenges'), limit(150));
+    const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) {
       return [];
     }

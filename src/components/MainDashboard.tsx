@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Shield, Target, Flame, Users, Sparkles, ChevronRight, Activity, BookOpen, CheckCircle, Menu, X } from 'lucide-react';
 import { fetchVscAthletes, fetchVscClubs, fetchVscTournaments, fetchNcsChallenges } from '../lib/firebase';
 
-interface MainDashboardProps {
-  onNavigateTo: (route: 'home' | 'vsc' | 'ncs') => void;
-}
-
-export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
+export default function MainDashboard() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [stats, setStats] = useState({
     clubs: 48,
@@ -38,12 +34,16 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
     loadStats();
   }, []);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0C10] text-slate-200 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-[#0D1117]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={scrollToTop}>
             <span className="text-2xl">🎯</span>
             <div>
               <span className="font-extrabold text-lg md:text-xl font-display tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-amber-400 to-blue-400">
@@ -54,37 +54,37 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
           </div>
           
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-slate-300">
-            <button onClick={() => onNavigateTo('home')} className="text-amber-400 hover:text-slate-100 transition-colors cursor-pointer">Trang Chủ</button>
-            <button onClick={() => onNavigateTo('vsc')} className="hover:text-amber-400 transition-colors cursor-pointer">Giải Quốc Gia (VSC)</button>
-            <button onClick={() => onNavigateTo('ncs')} className="hover:text-blue-400 transition-colors cursor-pointer">Câu Lạc Bộ (NCS)</button>
+            <button onClick={scrollToTop} className="text-amber-400 hover:text-slate-100 transition-colors cursor-pointer">Trang Chủ</button>
+            <a href="https://vscs.asia/vsc/" className="hover:text-amber-400 transition-colors">Giải Quốc Gia (VSC)</a>
+            <a href="https://vscs.asia/ncs/" className="hover:text-blue-400 transition-colors">Câu Lạc Bộ (NCS)</a>
           </nav>
-
+ 
           {/* Desktop Right Actions */}
           <div className="hidden sm:flex items-center gap-2">
-            <button 
+            <a 
               id="vsc-nav-shortcut"
-              onClick={() => onNavigateTo('vsc')}
-              className="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/25 hover:border-amber-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer"
+              href="https://vscs.asia/vsc/"
+              className="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/25 hover:border-amber-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs"
             >
               Cúp Quốc Gia
-            </button>
-            <button 
+            </a>
+            <a 
               id="ncs-nav-shortcut"
-              onClick={() => onNavigateTo('ncs')}
-              className="bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/25 hover:border-blue-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer"
+              href="https://vscs.asia/ncs/"
+              className="bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/25 hover:border-blue-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs"
             >
               Giao Hữu CLB
-            </button>
+            </a>
           </div>
-
+ 
           {/* Mobile Right Controls */}
           <div className="flex sm:hidden items-center gap-2">
-            <button 
-              onClick={() => onNavigateTo('vsc')}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer"
+            <a 
+              href="https://vscs.asia/vsc/"
+              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition-all"
             >
               CÚP QUỐC GIA
-            </button>
+            </a>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-slate-300 hover:text-white focus:outline-none p-1.5 rounded-lg bg-slate-800/40"
@@ -92,7 +92,7 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-
+ 
           {/* Medium Screen Menu Control (when md-hidden but sm-visible) */}
           <div className="hidden sm:flex md:hidden items-center">
             <button
@@ -103,76 +103,77 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
             </button>
           </div>
         </div>
-
+ 
         {/* Collapsible Mobile Menu Drawer */}
         {isMenuOpen && (
           <div className="md:hidden mt-3 pt-3 border-t border-slate-800 flex flex-col gap-2.5 font-semibold text-xs uppercase tracking-wider text-slate-300 bg-[#0D1117] px-2 py-3 rounded-xl">
             <button 
-              onClick={() => { onNavigateTo('home'); setIsMenuOpen(false); }} 
+              onClick={() => { scrollToTop(); setIsMenuOpen(false); }} 
               className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 text-amber-400 transition-colors"
             >
               Trang Chủ
             </button>
-            <button 
-              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+            <a 
+              href="https://vscs.asia/vsc/"
               className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors"
             >
               Giải Quốc Gia (VSC)
-            </button>
-            <button 
-              onClick={() => { onNavigateTo('ncs'); setIsMenuOpen(false); }} 
+            </a>
+            <a 
+              href="https://vscs.asia/ncs/"
               className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition-colors"
             >
               Câu Lạc Bộ (NCS)
-            </button>
-            <button 
-              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+            </a>
+            <a 
+              href="https://vscs.asia/vsc/"
               className="text-left py-2 px-3 rounded-lg bg-amber-500/15 border border-amber-500/20 text-amber-400 font-bold flex items-center gap-2 transition-colors"
             >
               <span>🏆 CÚP QUỐC GIA (XEM NGAY)</span>
-            </button>
-            <button 
-              onClick={() => { onNavigateTo('ncs'); setIsMenuOpen(false); }} 
+            </a>
+            <a 
+              href="https://vscs.asia/ncs/"
               className="text-left py-2 px-3 rounded-lg bg-blue-600/15 border border-blue-500/20 text-blue-400 font-bold flex items-center gap-2 transition-colors"
             >
               <span>🎯 GIAO HỮU CLB (LUYỆN TẬP)</span>
-            </button>
+            </a>
           </div>
         )}
       </header>
-
+ 
       {/* Mobile Persistent Sub-Header Navigation */}
       <div className="md:hidden sticky top-[61px] z-30 bg-[#090d12] border-b border-slate-800/80 px-3 py-2.5 flex items-center justify-between gap-1.5 overflow-x-auto scrollbar-none shadow-lg">
         <div className="flex items-center gap-1 min-w-max">
           <button 
-            onClick={() => onNavigateTo('home')} 
+            onClick={scrollToTop} 
             className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all bg-amber-500/10 text-amber-400 border border-amber-500/20"
           >
             Trang Chủ
           </button>
-          <button 
-            onClick={() => onNavigateTo('vsc')} 
+          <a 
+            href="https://vscs.asia/vsc/" 
             className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
           >
             Giải VSC
-          </button>
-          <button 
-            onClick={() => onNavigateTo('ncs')} 
+          </a>
+          <a 
+            href="https://vscs.asia/ncs/" 
             className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
           >
             CLB NCS
-          </button>
+          </a>
         </div>
-        <button 
-          onClick={() => onNavigateTo('vsc')} 
+        <a 
+          href="https://vscs.asia/vsc/" 
           className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shadow-md shadow-amber-500/15 shrink-0"
         >
           🏆 CÚP QUỐC GIA
-        </button>
+        </a>
       </div>
 
+
       {/* Main Hero Banner */}
-      <section className="relative overflow-hidden bg-radial from-[#0D1117] via-[#0A0C10] to-[#0A0C10] px-4 py-16 md:py-24 border-b border-slate-900">
+      <section className="relative overflow-hidden bg-radial from-[#0D1117] via-[#0A0C10] to-[#0A0C10] px-4 py-[30px] border-b border-slate-900">
         <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl -z-10" />
         <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl -z-10" />
         
@@ -313,7 +314,7 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
       <section className="bg-[#0D1117] border-y border-slate-900 py-12 px-4">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center space-y-1">
-            <h3 className="text-lg md:text-xl font-bold font-display uppercase text-slate-100">DỮ LIỆU CỘNG ĐỒNG VSCS 2026</h3>
+            <h3 className="text-lg md:text-xl font-bold font-display uppercase text-slate-100">DỮ LIỆU CỘNG ĐỒNG VSC 2026</h3>
             <p className="text-xs text-slate-500">Thông số tổng hợp hoạt động thể thao ná cao su cả nước</p>
           </div>
 
