@@ -11,6 +11,7 @@ import {
   limit, 
   Firestore 
 } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { Athlete, Club, Tournament, PracticeLog, PracticeChallenge } from '../types';
 import { mockAthletes, mockClubs, mockTournaments, mockPracticeLogs, mockPracticeChallenges } from '../data/mockData';
 
@@ -46,31 +47,56 @@ const ncsApp = getApps().find(app => app.name === 'ncsApp') || initializeApp(ncs
 export const vscDb = getFirestore(vscApp, "ai-studio-vscvietnamslings-3031112d-39bd-4933-828d-a6397149f785");
 export const ncsDb = getFirestore(ncsApp, "ai-studio-ncsvscvietnamsli-8b781f81-bfed-4913-9810-6113db23caba");
 
+// Initialize Auth
+export const ncsAuth = getAuth(ncsApp);
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
 // ---------------------------------------------------------
 // 2. VSC DATA FETCHING (FROM vscDb)
 // ---------------------------------------------------------
 
 export async function fetchVscTournaments(): Promise<Tournament[]> {
   try {
-    const querySnapshot = await getDocs(collection(vscDb, 'tournaments'));
+    const querySnapshot = await getDocs(collection(vscDb, 'v3_tournaments'));
     if (querySnapshot.empty) {
-      console.log("No tournaments found in Firestore, falling back to mockTournaments.");
+      console.log("No tournaments found in v3_tournaments collection, falling back to mockTournaments.");
       return mockTournaments;
     }
     
     const tournaments: Tournament[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Safely map incoming structure with fallbacks
+      // Parse tournament title from first history comment or fallbacks
+      const firstHistory = data.workflowHistory?.[0];
+      const title = firstHistory?.comment 
+        ? firstHistory.comment.replace(/^Khởi tạo giải đấu:\s*/i, '') 
+        : (data.name || data.title || "Giải Đấu Thể Thao VSC-26");
+
+      const dateStr = data.workflowUpdatedAt 
+        ? new Date(data.workflowUpdatedAt).toLocaleDateString('vi-VN') 
+        : (data.date || "2026");
+
+      let statusVal: 'upcoming' | 'ongoing' | 'completed' = 'upcoming';
+      if (data.workflowState === 'registration_open') {
+        statusVal = 'upcoming';
+      } else if (data.workflowState === 'active' || data.workflowState === 'ongoing') {
+        statusVal = 'ongoing';
+      } else if (data.workflowState === 'completed' || data.workflowState === 'finished') {
+        statusVal = 'completed';
+      } else {
+        statusVal = data.status || 'upcoming';
+      }
+
       tournaments.push({
         id: doc.id,
-        title: data.name || data.title || "Giải Đấu Thể Thao",
-        date: data.createdAt ? new Date(data.createdAt).toLocaleDateString('vi-VN') : (data.date || "2026"),
-        status: data.status === 'active' ? 'ongoing' : (data.status || 'upcoming'),
-        location: data.location || `Cự ly thi đấu: ${data.currentDistance || 10}M - Vòng ${data.currentRound || "1"}`,
+        title: title,
+        date: dateStr,
+        status: statusVal,
+        location: data.location || `Cự ly: 15M - Sân thi đấu Quốc gia VSC`,
         organizer: data.organizer || "Liên đoàn Thể thao Ná Cao Su Việt Nam (VSC)",
-        participantsCount: data.participantsCount || 120,
-        prizePool: data.prizePool || "Cúp Vàng Danh Giá",
+        participantsCount: data.participantsCount || data.views || 120,
+        prizePool: data.prizePool || "Cúp Vàng Danh Giá VSC",
         champion: data.champion ? {
           athleteName: data.champion.athleteName || "",
           clubName: data.champion.clubName || ""
@@ -194,33 +220,57 @@ function saveLocalChallenges(chals: PracticeChallenge[]) {
 // 3. NCS DATA FETCHING & WRITING (FROM/TO ncsDb)
 // ---------------------------------------------------------
 
-export async function fetchNcsPracticeLogs(): Promise<PracticeLog[]> {
+export async function fetchNcsPracticeLogs(userId?: string): Promise<PracticeLog[]> {
   try {
-    const querySnapshot = await getDocs(collection(ncsDb, 'practice_logs'));
+    const querySnapshot = await getDocs(collection(ncsDb, 'vsc_training_sessions'));
     if (querySnapshot.empty) {
-      return getLocalLogs();
+      return [];
     }
 
     const logs: PracticeLog[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      
+      // Filter by userId if specified to display only logged-in athlete's data
+      if (userId && data.userId !== userId && data.uid !== userId) {
+        return;
+      }
+
+      // Calculate hits and shots from native fields shown in the database screenshot (Image 3)
+      const shotsArray = data.shots || [];
+      const shotsCount = Number(data.targetShots || data.shotsCount || shotsArray.length || 30);
+      let hitsCount = 0;
+      if (data.hitsCount !== undefined) {
+        hitsCount = Number(data.hitsCount);
+      } else if (data.hits !== undefined) {
+        hitsCount = Number(data.hits);
+      } else if (shotsArray.length > 0) {
+        hitsCount = shotsArray.filter((s: boolean) => s === true).length;
+      } else {
+        const misses = Number(data.missesCount !== undefined ? data.missesCount : (data.misses !== undefined ? data.misses : 0));
+        hitsCount = Math.max(0, shotsCount - misses);
+      }
+
+      const accuracy = shotsCount > 0 ? parseFloat(((hitsCount / shotsCount) * 100).toFixed(1)) : 0;
+      const score = Math.round(accuracy);
+      const dateStr = data.date || (data.createdAt ? data.createdAt.split('T')[0] : "2026-08-27");
+
       logs.push({
-        id: doc.id,
-        date: data.date || "2026-08-20",
-        distance: data.distance as any,
-        shotsCount: Number(data.shotsCount),
-        hitsCount: Number(data.hitsCount),
-        accuracy: Number(data.accuracy),
-        score: Number(data.score)
+        id: docSnap.id,
+        date: dateStr,
+        distance: data.distance !== undefined ? data.distance : "15m",
+        shotsCount,
+        hitsCount,
+        accuracy,
+        score
       });
     });
 
     const sorted = logs.sort((a, b) => b.date.localeCompare(a.date));
-    saveLocalLogs(sorted);
     return sorted;
   } catch (error) {
-    console.warn("Firestore error fetching NCS practice logs (using local storage fallback):", error);
-    return getLocalLogs();
+    console.warn("Firestore error fetching NCS practice logs:", error);
+    return [];
   }
 }
 
@@ -230,51 +280,97 @@ export async function saveNcsPracticeLog(log: Omit<PracticeLog, 'id'>): Promise<
     id: `log-${Date.now()}`
   };
   
-  const localLogs = getLocalLogs();
-  saveLocalLogs([newLog, ...localLogs]);
-
   try {
-    const docRef = await addDoc(collection(ncsDb, 'practice_logs'), log);
+    // Generate boolean array matching target shots and hit counts
+    const shotsArray = Array.from({ length: log.shotsCount }, (_, i) => i < log.hitsCount);
+    const dbPayload = {
+      userId: ncsAuth.currentUser?.uid || "Ijh6rccAnxVBD3zFDG5sYYY6Tob2",
+      targetShots: log.shotsCount,
+      missesCount: log.shotsCount - log.hitsCount,
+      shots: shotsArray,
+      targetType: "bia_muc_tieu",
+      notes: "",
+      createdAt: new Date().toISOString(),
+      date: log.date,
+      distance: log.distance
+    };
+    const docRef = await addDoc(collection(ncsDb, 'vsc_training_sessions'), dbPayload);
     newLog.id = docRef.id;
-    saveLocalLogs([newLog, ...localLogs]);
     return newLog;
   } catch (error) {
-    console.warn("Firestore error saving NCS practice log (saved to local storage fallback):", error);
+    console.warn("Firestore error saving NCS practice log:", error);
     return newLog;
   }
 }
 
 export async function fetchNcsChallenges(): Promise<PracticeChallenge[]> {
   try {
-    const querySnapshot = await getDocs(collection(ncsDb, 'practice_challenges'));
+    const querySnapshot = await getDocs(collection(ncsDb, 'vsc_pk_challenges'));
     if (querySnapshot.empty) {
-      return getLocalChallenges();
+      return [];
     }
 
     const challenges: PracticeChallenge[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      
+      // Preserve exact distance string or format
+      const rawDistance = data.distance !== undefined ? data.distance : "15m";
+
+      // Map targetType to friendly name or keep raw database value
+      let targetVal = data.targetType || "Bia Giấy";
+      if (data.targetType === 'bia_muc_tieu') {
+        targetVal = "Bia Mục Tiêu";
+      } else if (data.targetType === 'bia_dat_set' || data.targetType === 'bia_dat') {
+        targetVal = "Bia Đất Sét";
+      } else if (data.targetType === 'nap_chai') {
+        targetVal = "Nắp Chai";
+      } else if (data.targetType === 'bia_kim_loai' || data.targetType === 'bia_sat') {
+        targetVal = "Bia Kim Loại";
+      }
+
+      // Determine status from database properties
+      let statusVal: 'open' | 'accepted' | 'completed' = 'open';
+      if (data.winnerName || data.winner || data.status === 'completed') {
+        statusVal = 'completed';
+      } else if (data.opponentUid || data.opponentName || data.status === 'accepted') {
+        statusVal = 'accepted';
+      }
+
+      const challengerNameStr = data.challengerName || data.challengerAthleteName || "Thành viên NCS";
+      const defenderNameStr = data.opponentName || data.opponentAthleteName || undefined;
+      const winnerNameStr = data.winnerName || data.winner || data.winnerAthleteName || undefined;
+      let loserNameStr = data.loserName || data.loser || data.loserAthleteName || undefined;
+      
+      if (winnerNameStr && !loserNameStr) {
+        if (winnerNameStr === challengerNameStr) {
+          loserNameStr = defenderNameStr || "Đối thủ";
+        } else if (defenderNameStr && winnerNameStr === defenderNameStr) {
+          loserNameStr = challengerNameStr;
+        }
+      }
+
       challenges.push({
-        id: doc.id,
-        challengerName: data.challengerName || "",
-        challengerClub: data.challengerClub || "",
-        defenderName: data.defenderName,
-        defenderClub: data.defenderClub,
-        distance: data.distance as any,
-        targetType: data.targetType as any,
-        shotsCount: Number(data.shotsCount),
-        wager: data.wager || "",
-        time: data.time || "",
-        status: data.status as any,
-        winnerName: data.winnerName
+        id: docSnap.id,
+        challengerName: challengerNameStr,
+        challengerClub: data.challengerClub || "Tự do",
+        defenderName: defenderNameStr,
+        defenderClub: data.opponentUid ? "NCS Club" : undefined,
+        distance: rawDistance,
+        targetType: targetVal,
+        shotsCount: Number(data.shotsCount || data.targetShots || 30),
+        wager: data.wager || "Ly cà phê vui vẻ ☕",
+        time: data.dateTime || data.time || "Gặp trực tiếp",
+        status: statusVal,
+        winnerName: winnerNameStr,
+        loserName: loserNameStr
       });
     });
 
-    saveLocalChallenges(challenges);
     return challenges;
   } catch (error) {
-    console.warn("Firestore error fetching NCS challenges (using local storage fallback):", error);
-    return getLocalChallenges();
+    console.warn("Firestore error fetching NCS challenges:", error);
+    return [];
   }
 }
 
@@ -288,7 +384,22 @@ export async function saveNcsChallenge(challenge: Omit<PracticeChallenge, 'id'>)
   saveLocalChallenges([newChal, ...localChals]);
 
   try {
-    const docRef = await addDoc(collection(ncsDb, 'practice_challenges'), challenge);
+    const dbPayload = {
+      challengerName: challenge.challengerName,
+      challengerClub: challenge.challengerClub,
+      challengerUid: ncsAuth.currentUser?.uid || "Ijh6rccAnxVBD3zFDG5sYYY6Tob2",
+      createdAt: new Date().toISOString(),
+      dateTime: challenge.time,
+      distance: `${challenge.distance}m`,
+      targetType: challenge.targetType === 'Bia Giấy' ? 'bia_muc_tieu' : 'bia_muc_tieu',
+      rules: "Cộng tổng điểm (Cộng dồn tất cả các hiệp)",
+      wager: challenge.wager || "Ly cà phê vui vẻ ☕",
+      opponentName: challenge.defenderName || "",
+      opponentUid: challenge.defenderClub || "",
+      shotsCount: challenge.shotsCount,
+      status: challenge.status
+    };
+    const docRef = await addDoc(collection(ncsDb, 'vsc_pk_challenges'), dbPayload);
     newChal.id = docRef.id;
     saveLocalChallenges([newChal, ...localChals]);
     return newChal;
@@ -312,8 +423,16 @@ export async function updateNcsChallenge(challengeId: string, updates: Partial<P
     if (challengeId.startsWith('local-') || challengeId.startsWith('chal-') || challengeId.startsWith('log-')) {
       return true;
     }
-    const chalRef = doc(ncsDb, 'practice_challenges', challengeId);
-    await updateDoc(chalRef, updates);
+    const chalRef = doc(ncsDb, 'vsc_pk_challenges', challengeId);
+    
+    // Map updates back to DB format
+    const dbUpdates: any = {};
+    if (updates.defenderName !== undefined) dbUpdates.opponentName = updates.defenderName;
+    if (updates.defenderClub !== undefined) dbUpdates.opponentUid = "accepted-opponent-uid";
+    if (updates.winnerName !== undefined) dbUpdates.winnerName = updates.winnerName;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+    await updateDoc(chalRef, dbUpdates);
     return true;
   } catch (error) {
     console.warn("Firestore error updating NCS challenge (updated in local storage fallback):", error);

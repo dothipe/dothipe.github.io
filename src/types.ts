@@ -61,11 +61,12 @@ export interface PracticeChallenge {
   challengerClub: string;
   defenderName?: string; // can be open to any challenger
   defenderClub?: string;
-  distance: 10 | 12 | 15 | 20;
-  targetType: 'Bia Giấy' | 'Bia Đất Sét' | 'Nắp Chai' | 'Bia Kim Loại';
+  distance: any;
+  targetType: string;
   shotsCount: number;
   wager: string; // "Nước mía", "Cà phê", "Giao lưu vui vẻ"
   time: string;
   status: 'open' | 'accepted' | 'completed';
   winnerName?: string;
+  loserName?: string;
 }

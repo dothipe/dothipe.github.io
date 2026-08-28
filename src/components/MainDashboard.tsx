@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Shield, Target, Flame, Users, Sparkles, ChevronRight, Activity, BookOpen, CheckCircle } from 'lucide-react';
+import { Trophy, Shield, Target, Flame, Users, Sparkles, ChevronRight, Activity, BookOpen, CheckCircle, Menu, X } from 'lucide-react';
 import { fetchVscAthletes, fetchVscClubs, fetchVscTournaments, fetchNcsChallenges } from '../lib/firebase';
 
 interface MainDashboardProps {
@@ -7,6 +7,7 @@ interface MainDashboardProps {
 }
 
 export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [stats, setStats] = useState({
     clubs: 48,
     athletes: 1250,
@@ -58,11 +59,12 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
             <button onClick={() => onNavigateTo('ncs')} className="hover:text-blue-400 transition-colors cursor-pointer">Câu Lạc Bộ (NCS)</button>
           </nav>
 
-          <div className="flex gap-2">
+          {/* Desktop Right Actions */}
+          <div className="hidden sm:flex items-center gap-2">
             <button 
               id="vsc-nav-shortcut"
               onClick={() => onNavigateTo('vsc')}
-              className="hidden sm:inline-flex bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/25 hover:border-amber-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer"
+              className="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/25 hover:border-amber-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer"
             >
               Cúp Quốc Gia
             </button>
@@ -74,8 +76,100 @@ export default function MainDashboard({ onNavigateTo }: MainDashboardProps) {
               Giao Hữu CLB
             </button>
           </div>
+
+          {/* Mobile Right Controls */}
+          <div className="flex sm:hidden items-center gap-2">
+            <button 
+              onClick={() => onNavigateTo('vsc')}
+              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition-all cursor-pointer"
+            >
+              CÚP QUỐC GIA
+            </button>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-slate-300 hover:text-white focus:outline-none p-1.5 rounded-lg bg-slate-800/40"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {/* Medium Screen Menu Control (when md-hidden but sm-visible) */}
+          <div className="hidden sm:flex md:hidden items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-slate-300 hover:text-white focus:outline-none p-1.5 rounded-lg bg-slate-800/40 ml-2"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible Mobile Menu Drawer */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-3 pt-3 border-t border-slate-800 flex flex-col gap-2.5 font-semibold text-xs uppercase tracking-wider text-slate-300 bg-[#0D1117] px-2 py-3 rounded-xl">
+            <button 
+              onClick={() => { onNavigateTo('home'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 text-amber-400 transition-colors"
+            >
+              Trang Chủ
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors"
+            >
+              Giải Quốc Gia (VSC)
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('ncs'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition-colors"
+            >
+              Câu Lạc Bộ (NCS)
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg bg-amber-500/15 border border-amber-500/20 text-amber-400 font-bold flex items-center gap-2 transition-colors"
+            >
+              <span>🏆 CÚP QUỐC GIA (XEM NGAY)</span>
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('ncs'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg bg-blue-600/15 border border-blue-500/20 text-blue-400 font-bold flex items-center gap-2 transition-colors"
+            >
+              <span>🎯 GIAO HỮU CLB (LUYỆN TẬP)</span>
+            </button>
+          </div>
+        )}
       </header>
+
+      {/* Mobile Persistent Sub-Header Navigation */}
+      <div className="md:hidden sticky top-[61px] z-30 bg-[#090d12] border-b border-slate-800/80 px-3 py-2.5 flex items-center justify-between gap-1.5 overflow-x-auto scrollbar-none shadow-lg">
+        <div className="flex items-center gap-1 min-w-max">
+          <button 
+            onClick={() => onNavigateTo('home')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all bg-amber-500/10 text-amber-400 border border-amber-500/20"
+          >
+            Trang Chủ
+          </button>
+          <button 
+            onClick={() => onNavigateTo('vsc')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+          >
+            Giải VSC
+          </button>
+          <button 
+            onClick={() => onNavigateTo('ncs')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+          >
+            CLB NCS
+          </button>
+        </div>
+        <button 
+          onClick={() => onNavigateTo('vsc')} 
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shadow-md shadow-amber-500/15 shrink-0"
+        >
+          🏆 CÚP QUỐC GIA
+        </button>
+      </div>
 
       {/* Main Hero Banner */}
       <section className="relative overflow-hidden bg-radial from-[#0D1117] via-[#0A0C10] to-[#0A0C10] px-4 py-16 md:py-24 border-b border-slate-900">

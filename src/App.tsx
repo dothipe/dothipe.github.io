@@ -71,7 +71,7 @@ export default function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
-            <VscPortal onBackToHome={() => navigateTo('home')} />
+            <VscPortal onBackToHome={() => navigateTo('home')} onNavigateTo={navigateTo} />
           </motion.div>
         )}
 
@@ -83,7 +83,7 @@ export default function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
-            <NcsPortal onBackToHome={() => navigateTo('home')} />
+            <NcsPortal onBackToHome={() => navigateTo('home')} onNavigateTo={navigateTo} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -5,8 +5,11 @@ import {
   saveNcsPracticeLog, 
   fetchNcsChallenges, 
   saveNcsChallenge, 
-  updateNcsChallenge 
+  updateNcsChallenge,
+  ncsAuth,
+  googleProvider
 } from '../lib/firebase';
+import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { 
   ArrowLeft, 
   Target, 
@@ -20,25 +23,84 @@ import {
   CheckCircle, 
   Users, 
   BarChart3,
-  Dumbbell
+  Dumbbell,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  Check,
+  ExternalLink,
+  Copy,
+  Shield
 } from 'lucide-react';
 
 interface NcsPortalProps {
   onBackToHome: () => void;
+  onNavigateTo: (route: 'home' | 'vsc' | 'ncs') => void;
 }
 
-export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
+export default function NcsPortal({ onBackToHome, onNavigateTo }: NcsPortalProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'challenges' | 'tracker'>('challenges');
   const [challenges, setChallenges] = useState<PracticeChallenge[]>([]);
   const [practiceLogs, setPracticeLogs] = useState<PracticeLog[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load live data from Firestore on mount
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authErrorDetail, setAuthErrorDetail] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
+
+  // Sync auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(ncsAuth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setChallengeData(prev => ({ ...prev, challengerName: currentUser.displayName || '' }));
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    try {
+      setAuthErrorDetail(null);
+      await signInWithPopup(ncsAuth, googleProvider);
+      setShowAuthModal(false);
+    } catch (err: any) {
+      console.error("Google Auth Error:", err);
+      if (err?.code === 'auth/unauthorized-domain' || (err?.message && err.message.includes('unauthorized-domain'))) {
+        setAuthErrorDetail('unauthorized-domain');
+      } else {
+        setAuthErrorDetail(err?.message || 'Lỗi đăng nhập không xác định');
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setUser(null);
+      await signOut(ncsAuth);
+    } catch (err) {
+      console.error("Logout Error:", err);
+    }
+  };
+
+  const handleCopyDomain = (domain: string) => {
+    navigator.clipboard.writeText(domain);
+    setCopiedDomain(domain);
+    setTimeout(() => setCopiedDomain(null), 2000);
+  };
+
+  // Load live data from Firestore on mount and when user logs in/out
   useEffect(() => {
     async function loadLiveData() {
       try {
+        setLoading(true);
         const [logs, chals] = await Promise.all([
-          fetchNcsPracticeLogs(),
+          user ? fetchNcsPracticeLogs(user.uid) : Promise.resolve([]),
           fetchNcsChallenges()
         ]);
         setPracticeLogs(logs);
@@ -50,7 +112,7 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
       }
     }
     loadLiveData();
-  }, []);
+  }, [user]);
 
   // Challenge Form State
   const [showChallengeForm, setShowChallengeForm] = useState(false);
@@ -305,7 +367,7 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
             className="flex items-center gap-2 text-cyan-500 hover:text-cyan-400 transition-all py-1.5 px-3 rounded-lg hover:bg-cyan-500/10 cursor-pointer text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Về Trang Chủ</span>
+            <span className="hidden sm:inline">Về Trang Chủ</span>
           </button>
           
           <div className="flex items-center gap-3">
@@ -316,17 +378,158 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
             </div>
           </div>
 
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <button onClick={() => onNavigateTo('home')} className="hover:text-amber-400 transition-colors cursor-pointer">Trang Chủ</button>
+            <button onClick={() => onNavigateTo('vsc')} className="hover:text-amber-400 transition-colors cursor-pointer">Giải Quốc Gia (VSC)</button>
+            <button onClick={() => onNavigateTo('ncs')} className="text-blue-400 hover:text-slate-100 transition-colors cursor-pointer">Câu Lạc Bộ (NCS)</button>
+          </nav>
+
           <div className="flex items-center gap-2">
-            <button 
+            {user ? (
+              <div className="hidden sm:flex items-center gap-2 bg-slate-800/40 border border-slate-700/30 rounded-lg p-1 pr-3">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User avatar" className="w-6 h-6 rounded-full border border-slate-600/30" />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xs font-bold font-mono">
+                    {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                )}
+                <span className="text-[11px] font-bold text-slate-300 max-w-[80px] truncate">{user.displayName || "Thành viên"}</span>
+                <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer" title="Đăng xuất">
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="hidden sm:flex items-center gap-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Đăng nhập NCS</span>
+              </button>
+            )}
+
+            <a 
               id="ncs-header-kèo-btn"
-              onClick={() => { setShowChallengeForm(true); setActiveTab('challenges'); }}
-              className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all hover:scale-105 shadow-md shadow-cyan-500/10 cursor-pointer"
+              href="https://vscs.asia/ncs/?tab=pk_lobby"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer inline-flex items-center justify-center text-center"
             >
-              Set Kèo Giao Lưu
+              Set Kèo
+            </a>
+
+            {/* Hamburger Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-slate-300 hover:text-white focus:outline-none p-1.5 rounded-lg bg-slate-800/40 ml-1 block lg:hidden"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+
+        {/* Collapsible Mobile Menu Drawer */}
+        {isMenuOpen && (
+          <div className="lg:hidden mt-3 pt-3 border-t border-slate-800 flex flex-col gap-2.5 font-semibold text-xs uppercase tracking-wider text-slate-300 bg-[#0D1117] px-2 py-3 rounded-xl">
+            {user && (
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2 px-3">
+                <div className="flex items-center gap-2">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="User avatar" className="w-8 h-8 rounded-full border border-slate-600/30" />
+                  ) : (
+                    <span className="w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-sm font-bold font-mono">
+                      {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  )}
+                  <div>
+                    <div className="text-xs font-bold text-slate-200">{user.displayName || "Thành viên NCS"}</div>
+                    <div className="text-[10px] text-slate-500 lowercase">{user.email}</div>
+                  </div>
+                </div>
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-red-400 hover:text-red-300 p-2 text-xs flex items-center gap-1">
+                  <LogOut className="w-4 h-4" />
+                  <span>Thoát</span>
+                </button>
+              </div>
+            )}
+
+            {!user && (
+              <button 
+                onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }} 
+                className="mx-3 my-1 py-2 px-3 rounded-lg bg-cyan-500 text-slate-950 font-bold flex items-center justify-center gap-2 text-xs cursor-pointer"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>ĐĂNG NHẬP VỚI DATABASE NCS</span>
+              </button>
+            )}
+
+            <button 
+              onClick={() => { onNavigateTo('home'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 text-amber-400 transition-colors"
+            >
+              Trang Chủ
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors"
+            >
+              Giải Quốc Gia (VSC)
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('ncs'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition-colors"
+            >
+              Câu Lạc Bộ (NCS)
+            </button>
+            <button 
+              onClick={() => { onNavigateTo('vsc'); setIsMenuOpen(false); }} 
+              className="text-left py-2 px-3 rounded-lg bg-amber-500/15 border border-amber-500/20 text-amber-400 font-bold flex items-center gap-2 transition-colors"
+            >
+              <span>🏆 CÚP QUỐC GIA (XEM NGAY)</span>
+            </button>
+            <a 
+              href="https://vscs.asia/ncs/?tab=pk_lobby"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-left py-2 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 font-bold flex items-center gap-2 transition-colors"
+            >
+              <span>🌐 LOBBY KÈO ONLINE (VSCS.ASIA)</span>
+            </a>
+          </div>
+        )}
       </header>
+
+      {/* Mobile Persistent Sub-Header Navigation */}
+      <div className="md:hidden sticky top-[61px] z-30 bg-[#090d12] border-b border-slate-800/80 px-3 py-2.5 flex items-center justify-between gap-1.5 overflow-x-auto scrollbar-none shadow-lg">
+        <div className="flex items-center gap-1 min-w-max">
+          <button 
+            onClick={() => onNavigateTo('home')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+          >
+            Trang Chủ
+          </button>
+          <button 
+            onClick={() => onNavigateTo('vsc')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+          >
+            Giải VSC
+          </button>
+          <button 
+            onClick={() => onNavigateTo('ncs')} 
+            className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20"
+          >
+            CLB NCS
+          </button>
+        </div>
+        <button 
+          onClick={() => onNavigateTo('vsc')} 
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shadow-md shadow-amber-500/15 shrink-0"
+        >
+          🏆 CÚP QUỐC GIA
+        </button>
+      </div>
 
       {/* Hero Banner for NCS */}
       <section className="relative overflow-hidden bg-radial from-cyan-950/10 via-[#0A0C10] to-[#0A0C10] border-b border-slate-900 px-4 py-12 md:py-16">
@@ -592,18 +795,15 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
                       <div className="pt-3 border-t border-slate-900">
                         {chal.status === 'open' ? (
                           <div className="flex gap-2">
-                            <button
+                            <a
                               id={`accept-btn-${chal.id}`}
-                              onClick={() => {
-                                const name = prompt('Nhập tên của bạn để Chấp Nhận thách đấu:');
-                                if (!name) return;
-                                const club = prompt('Nhập tên CLB của bạn (hoặc Tự do):') || 'Tự do';
-                                handleAcceptChallenge(chal.id, name, club);
-                              }}
-                              className="w-full bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-center"
+                              href={`https://vscs.asia/ncs/?tab=pk_lobby&id=${chal.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-center block"
                             >
                               Nhận Kèo Ngay
-                            </button>
+                            </a>
                           </div>
                         ) : chal.status === 'accepted' ? (
                           <div className="space-y-2">
@@ -614,24 +814,44 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
                               </div>
                               <span className="text-[10px] text-slate-500">{chal.defenderClub}</span>
                             </div>
-                            <button
+                            <a
                               id={`complete-btn-${chal.id}`}
-                              onClick={() => {
-                                const confirmWin = confirm(`Kèo đấu giữa ${chal.challengerName} và ${chal.defenderName} đã đấu xong? Bạn thắng hay đối thủ thắng? \nClick 'OK' nếu ${chal.challengerName} thắng, click 'Cancel' nếu ${chal.defenderName} thắng.`);
-                                const winner = confirmWin ? chal.challengerName : (chal.defenderName || 'Đối thủ');
-                                handleCompleteChallenge(chal.id, winner);
-                              }}
-                              className="w-full bg-[#0D1117] hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-center"
+                              href={`https://vscs.asia/ncs/?tab=pk_lobby&id=${chal.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-[#0D1117] hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-center block"
                             >
-                              Nhập Kết Quả Đấu
-                            </button>
+                              Xem Kết Quả
+                            </a>
                           </div>
                         ) : (
-                          <div className="bg-[#0A0C10] p-2 rounded-lg border border-slate-850 flex items-center gap-2 text-xs">
-                            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                            <p className="text-slate-400 truncate">
-                              Chiến thắng: <strong className="text-emerald-400 font-bold">{chal.winnerName}</strong>
-                            </p>
+                          <div className="space-y-2">
+                            <div className="bg-[#0E1513] border border-emerald-500/20 p-3 rounded-lg space-y-1.5 text-xs">
+                              <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                <span>KẾT QUẢ TRẬN ĐẤU</span>
+                              </div>
+                              <div className="space-y-1 mt-1 text-slate-300">
+                                <p className="flex items-center justify-between">
+                                  <span>🏆 Thắng cuộc:</span>
+                                  <strong className="text-emerald-400 font-extrabold">{chal.winnerName || "Đang cập nhật"}</strong>
+                                </p>
+                                {chal.loserName && (
+                                  <p className="flex items-center justify-between border-t border-slate-900/60 pt-1.5 mt-1.5">
+                                    <span>❌ Thua cuộc:</span>
+                                    <strong className="text-rose-400 font-medium">{chal.loserName}</strong>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <a
+                              href={`https://vscs.asia/ncs/?tab=pk_lobby&id=${chal.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-[#0D1117]/60 hover:bg-slate-850 border border-slate-900 text-slate-400 py-1.5 rounded-lg text-[11px] transition-colors cursor-pointer text-center block font-semibold"
+                            >
+                              Xem Chi Tiết Kết Quả
+                            </a>
                           </div>
                         )}
                       </div>
@@ -644,155 +864,122 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
 
           {/* TAB 2: PROGRESS TRACKER */}
           {activeTab === 'tracker' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Practice Stats and SVG graph */}
-              <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 rounded-xl p-5 shadow-xl lg:col-span-2 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                  <div>
-                    <h3 className="font-bold font-display text-base text-slate-100 flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-cyan-400" />
-                      <span>Biểu Đồ Tiến Trình Trúng Mục Tiêu</span>
-                    </h3>
-                    <p className="text-xs text-slate-400">Theo dõi tỉ lệ bắn chính xác (%) của 7 buổi tập luyện gần nhất</p>
-                  </div>
-                  
+            !user ? (
+              <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 rounded-xl p-8 shadow-xl text-center max-w-2xl mx-auto space-y-6 my-8 animate-in fade-in zoom-in-95 duration-300">
+                <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20 mx-auto">
+                  <BarChart3 className="w-8 h-8" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-extrabold text-xl text-slate-100 font-display">Biểu Đồ Tiến Trình Tập Luyện</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+                    Vui lòng đăng nhập để xem biểu đồ và ghi lịch sử luyện tập cá nhân của bạn trong hệ thống.
+                  </p>
+                </div>
+                <div className="pt-2">
                   <button
-                    id="add-log-toggle-btn"
-                    onClick={() => setShowLogForm(!showLogForm)}
-                    className="flex items-center gap-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 hover:border-cyan-500 font-bold px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer self-start"
+                    onClick={() => setShowAuthModal(true)}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-black py-3 px-6 rounded-xl text-xs transition-all tracking-wider cursor-pointer shadow-lg shadow-cyan-500/10 uppercase inline-flex items-center gap-2"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Ghi Lịch Sử Mới</span>
+                    <LogIn className="w-4 h-4" />
+                    <span>ĐĂNG NHẬP</span>
                   </button>
                 </div>
-
-                {/* Simulated Log submission form inside container */}
-                {showLogForm && (
-                  <form onSubmit={handleCreateLog} className="bg-[#0A0C10] p-4 rounded-xl border border-cyan-500/20 space-y-3">
-                    <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Nhập Nhật Ký Tập Luyện Hôm Hôm Nay</h4>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                
+                {/* Practice Stats and SVG graph */}
+                <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 rounded-xl p-5 shadow-xl lg:col-span-2 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                      <h3 className="font-bold font-display text-base text-slate-100 flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-cyan-400" />
+                        <span>Biểu Đồ Tiến Trình Trúng Mục Tiêu</span>
+                      </h3>
+                      <p className="text-xs text-slate-400">Theo dõi tỉ lệ bắn chính xác (%) của các buổi tập luyện gần nhất</p>
+                    </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Cự ly bắn (m)</label>
-                        <select
-                          value={logData.distance}
-                          onChange={e => setLogData({...logData, distance: Number(e.target.value) as any})}
-                          className="bg-[#0D1117] border border-slate-800 text-slate-200 text-xs p-2 rounded-lg w-full cursor-pointer focus:outline-none"
-                        >
-                          <option value="10" className="bg-[#0D1117]">10 mét</option>
-                          <option value="15" className="bg-[#0D1117]">15 mét</option>
-                          <option value="20" className="bg-[#0D1117]">20 mét</option>
-                        </select>
-                      </div>
+                    <a
+                      id="add-log-toggle-btn"
+                      href="https://vscs.asia/ncs/?tab=control_panel&subtab=profile"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer self-start"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Ghi Lịch Sử Mới</span>
+                    </a>
+                  </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Số phát bắn (lượt)</label>
-                        <input
-                          type="number"
-                          required
-                          min="10"
-                          max="200"
-                          value={logData.shotsCount}
-                          onChange={e => setLogData({...logData, shotsCount: Number(e.target.value)})}
-                          className="bg-[#0D1117] border border-slate-800 text-slate-200 text-xs p-2 rounded-lg w-full focus:outline-none"
-                        />
-                      </div>
+                  {/* SVG Line Graph */}
+                  <div className="bg-[#0A0C10] p-4 rounded-xl border border-slate-800 flex items-center justify-center">
+                    {renderSVGGraph()}
+                  </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-slate-400">Số lần trúng mục tiêu</label>
-                        <input
-                          type="number"
-                          required
-                          min="0"
-                          max={logData.shotsCount}
-                          value={logData.hitsCount}
-                          onChange={e => setLogData({...logData, hitsCount: Number(e.target.value)})}
-                          className="bg-[#0D1117] border border-slate-800 text-slate-200 text-xs p-2 rounded-lg w-full focus:outline-none"
-                        />
-                      </div>
+                  {/* Cumulative Stats Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Trung bình %</span>
+                      <span className="block text-xl font-bold font-mono text-cyan-400 mt-1">{averageAccuracy}%</span>
                     </div>
-
-                    <div className="flex justify-end gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowLogForm(false)}
-                        className="bg-[#0D1117] hover:bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-md cursor-pointer border border-slate-800"
-                      >
-                        Bỏ qua
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-xs px-3.5 py-1.5 rounded-md cursor-pointer"
-                      >
-                        Lưu Nhật Ký
-                      </button>
+                    <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Tổng phát bắn</span>
+                      <span className="block text-xl font-bold font-mono text-slate-300 mt-1">{totalShots} phát</span>
                     </div>
-                  </form>
-                )}
-
-                {/* SVG Line Graph */}
-                <div className="bg-[#0A0C10] p-4 rounded-xl border border-slate-800 flex items-center justify-center">
-                  {renderSVGGraph()}
-                </div>
-
-                {/* Cumulative Stats Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Trung bình %</span>
-                    <span className="block text-xl font-bold font-mono text-cyan-400 mt-1">{averageAccuracy}%</span>
-                  </div>
-                  <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Tổng phát bắn</span>
-                    <span className="block text-xl font-bold font-mono text-slate-300 mt-1">{totalShots} phát</span>
-                  </div>
-                  <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Tổng bắn trúng</span>
-                    <span className="block text-xl font-bold font-mono text-emerald-400 mt-1">{totalHits} lần</span>
-                  </div>
-                  <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">Tỉ lệ tổng hợp</span>
-                    <span className="block text-xl font-bold font-mono text-cyan-400 mt-1">{cumulativeAccuracy}%</span>
+                    <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Tổng bắn trúng</span>
+                      <span className="block text-xl font-bold font-mono text-emerald-400 mt-1">{totalHits} lần</span>
+                    </div>
+                    <div className="bg-black/40 p-3 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold">Tỉ lệ tổng hợp</span>
+                      <span className="block text-xl font-bold font-mono text-cyan-400 mt-1">{cumulativeAccuracy}%</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Training Logs listing */}
-              <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 p-5 rounded-xl space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-                  <div className="w-8 h-8 rounded bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
-                    <Dumbbell className="w-4 h-4" />
+                {/* Training Logs listing */}
+                <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 p-5 rounded-xl space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <div className="w-8 h-8 rounded bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
+                      <Dumbbell className="w-4 h-4" />
+                    </div>
+                    <h4 className="font-bold text-sm font-display">Lịch Sử Tập Luyện Gần Nhất</h4>
                   </div>
-                  <h4 className="font-bold text-sm font-display">Lịch Sử Tập Luyện Gần Nhất</h4>
-                </div>
 
-                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                  {practiceLogs.map((log) => (
-                    <div key={log.id} className="bg-[#0A0C10] p-3 rounded-lg border border-slate-850 flex items-center justify-between text-xs hover:border-slate-800 transition-colors">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-slate-300">{log.date}</span>
-                          <span className="bg-[#0D1117] text-slate-400 px-1.5 py-0.5 rounded-md font-semibold font-mono text-[9px] border border-slate-800">
-                            {log.distance} mét
-                          </span>
+                  <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    {practiceLogs.length === 0 ? (
+                      <div className="text-center py-8 text-slate-500 text-xs">
+                        Chưa có lịch sử tập luyện nào được ghi nhận.
+                      </div>
+                    ) : (
+                      practiceLogs.map((log) => (
+                        <div key={log.id} className="bg-[#0A0C10] p-3 rounded-lg border border-slate-850 flex items-center justify-between text-xs hover:border-slate-800 transition-colors">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-slate-300">{log.date}</span>
+                              <span className="bg-[#0D1117] text-slate-400 px-1.5 py-0.5 rounded-md font-semibold font-mono text-[9px] border border-slate-800">
+                                {log.distance} mét
+                              </span>
+                            </div>
+                            <p className="text-slate-500">
+                              Bắn trúng: <strong className="text-slate-300 font-semibold">{log.hitsCount}</strong> trên tổng <strong className="text-slate-300 font-semibold">{log.shotsCount}</strong> phát
+                            </p>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="block text-[10px] text-slate-500">Độ chính xác</span>
+                            <span className={`font-bold font-mono ${
+                              log.accuracy >= 90 ? 'text-emerald-400' : log.accuracy >= 80 ? 'text-cyan-400' : 'text-amber-500'
+                            }`}>{log.accuracy}%</span>
+                          </div>
                         </div>
-                        <p className="text-slate-500">
-                          Bắn trúng: <strong className="text-slate-300 font-semibold">{log.hitsCount}</strong> trên tổng <strong className="text-slate-300 font-semibold">{log.shotsCount}</strong> phát
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="block text-[10px] text-slate-500">Độ chính xác</span>
-                        <span className={`font-bold font-mono ${
-                          log.accuracy >= 90 ? 'text-emerald-400' : log.accuracy >= 80 ? 'text-cyan-400' : 'text-amber-500'
-                        }`}>{log.accuracy}%</span>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
 
-            </div>
+              </div>
+            )
           )}
 
         </div>
@@ -805,6 +992,84 @@ export default function NcsPortal({ onBackToHome }: NcsPortalProps) {
           <p>Mọi hoạt động vui chơi luyện tập đều dựa trên tinh thần tự nguyện, tôn trọng lẫn nhau và cam kết an toàn, văn minh thể thao.</p>
         </div>
       </footer>
+
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-[#0D1117] border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => { setShowAuthModal(false); setAuthErrorDetail(null); }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg bg-slate-800/40"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <div className="flex items-center gap-3 border-b border-slate-850 pb-4 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-100 font-display uppercase tracking-wide">
+                  Đăng Nhập Cổng NCS CLB
+                </h3>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                  Kết nối dữ liệu luyện tập & set kèo online
+                </p>
+              </div>
+            </div>
+
+            {/* Official Google Auth */}
+            <div className="space-y-4">
+              <button
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-2.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-black py-3 px-4 rounded-xl text-xs transition-colors cursor-pointer shadow-lg shadow-cyan-500/10"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>ĐĂNG NHẬP VỚI GOOGLE ACCOUNT</span>
+              </button>
+
+              {/* Authorized Domain Error Step-by-Step Guide */}
+              {authErrorDetail === 'unauthorized-domain' && (
+                <div className="mt-4 p-4 rounded-xl bg-amber-500/5 border border-amber-500/15 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center gap-2 text-amber-500 font-bold text-[11px] uppercase tracking-wider mb-2">
+                    <span>⚠️ Lỗi Firebase Authorized Domain</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                    Tên miền hiện tại của ứng dụng chưa được ủy quyền (Whitelisted) trên Firebase Console của bạn. Vui lòng thêm các tên miền bên dưới vào danh sách Authorized Domains:
+                  </p>
+
+                  <div className="space-y-2.5 text-[11px] text-slate-400 mb-4 pl-1">
+                    <p><strong>Bước 1:</strong> Truy cập <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">Firebase Console</a> &gt; Authentication &gt; Settings &gt; Authorized domains.</p>
+                    <p><strong>Bước 2:</strong> Nhấp thêm các tên miền sau:</p>
+                  </div>
+
+                  <div className="space-y-1.5 mb-4">
+                    {[
+                      "ais-dev-xhpvmraxraljai6f2eiaw7-1018275709978.asia-southeast1.run.app",
+                      "ais-pre-xhpvmraxraljai6f2eiaw7-1018275709978.asia-southeast1.run.app",
+                      "localhost"
+                    ].map((domain) => (
+                      <div 
+                        key={domain} 
+                        onClick={() => handleCopyDomain(domain)}
+                        className="bg-black/40 border border-slate-800/80 hover:border-cyan-500/30 p-2 rounded-lg flex items-center justify-between text-[10px] font-mono cursor-pointer transition-all group"
+                        title="Click để copy"
+                      >
+                        <span className="text-slate-300 truncate max-w-[80%]">{domain}</span>
+                        <div className="flex items-center gap-1.5">
+                          {copiedDomain === domain ? (
+                            <span className="text-[9px] text-emerald-400 font-bold">Đã copy!</span>
+                          ) : null}
+                          <Copy className="w-3 h-3 text-slate-500 group-hover:text-cyan-400" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
