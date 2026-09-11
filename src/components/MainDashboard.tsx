@@ -55,7 +55,7 @@ export default function MainDashboard() {
           
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-slate-300">
             <button onClick={scrollToTop} className="text-amber-400 hover:text-slate-100 transition-colors cursor-pointer">Trang Chủ</button>
-            <a href="https://vscs.asia/vsc/" className="hover:text-amber-400 transition-colors">Giải Quốc Gia (VSC)</a>
+            <a href="#" className="hover:text-amber-400 transition-colors">Giải Quốc Gia (VSC)</a>
             <a href="https://vscs.asia/ncs/" className="hover:text-blue-400 transition-colors">Câu Lạc Bộ (NCS)</a>
           </nav>
  
@@ -63,7 +63,7 @@ export default function MainDashboard() {
           <div className="hidden sm:flex items-center gap-2">
             <a 
               id="vsc-nav-shortcut"
-              href="https://vscs.asia/vsc/"
+              href="#"
               className="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/25 hover:border-amber-500 transition-all font-bold px-3 py-1.5 rounded-lg text-xs"
             >
               Cúp Quốc Gia
@@ -80,7 +80,7 @@ export default function MainDashboard() {
           {/* Mobile Right Controls */}
           <div className="flex sm:hidden items-center gap-2">
             <a 
-              href="https://vscs.asia/vsc/"
+              href="#"
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition-all"
             >
               CÚP QUỐC GIA
@@ -114,7 +114,7 @@ export default function MainDashboard() {
               Trang Chủ
             </button>
             <a 
-              href="https://vscs.asia/vsc/"
+              href="#"
               className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors"
             >
               Giải Quốc Gia (VSC)
@@ -126,7 +126,7 @@ export default function MainDashboard() {
               Câu Lạc Bộ (NCS)
             </a>
             <a 
-              href="https://vscs.asia/vsc/"
+              href="#"
               className="text-left py-2 px-3 rounded-lg bg-amber-500/15 border border-amber-500/20 text-amber-400 font-bold flex items-center gap-2 transition-colors"
             >
               <span>🏆 CÚP QUỐC GIA (XEM NGAY)</span>
@@ -151,7 +151,7 @@ export default function MainDashboard() {
             Trang Chủ
           </button>
           <a 
-            href="https://vscs.asia/vsc/" 
+            href="#" 
             className="text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg uppercase transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800"
           >
             Giải VSC
@@ -164,7 +164,7 @@ export default function MainDashboard() {
           </a>
         </div>
         <a 
-          href="https://vscs.asia/vsc/" 
+          href="#" 
           className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all shadow-md shadow-amber-500/15 shrink-0"
         >
           🏆 CÚP QUỐC GIA
@@ -249,7 +249,7 @@ export default function MainDashboard() {
 
             <a
               id="vsc-navigate-btn"
-              href="https://vscs.asia/vsc/"
+              href="#"
               className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-3 px-4 rounded-xl text-xs md:text-sm tracking-wider uppercase transition-all shadow-md shadow-amber-500/5 flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
             >
               <span>Vào Cổng Giải Quốc Gia</span>
