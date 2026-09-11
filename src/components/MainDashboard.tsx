@@ -274,7 +274,7 @@ export default function MainDashboard() {
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center space-y-1">
             <h3 className="text-lg md:text-xl font-bold font-display uppercase text-slate-100">DỮ LIỆU CỘNG ĐỒNG NÁ CAO SU VIỆT NAM</h3>
-            <p className="text-xs text-slate-500">Thông số thời gian thực kết nối từ cơ sở dữ liệu Cloud Firestore</p>
+            <p className="text-xs text-slate-500">Thông số thời gian thực kết nối từ cơ sở dữ liệu</p>
           </div>
 
 
