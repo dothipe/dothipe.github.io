@@ -463,3 +463,58 @@ export async function updateNcsChallenge(challengeId: string, updates: Partial<P
     return true;
   }
 }
+
+export async function fetchNcsTournaments(): Promise<any[]> {
+  try {
+    const q = query(collection(ncsDb, 'tournaments'), limit(150));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      return [];
+    }
+    const results: any[] = [];
+    querySnapshot.forEach((doc) => {
+      results.push({ id: doc.id, ...doc.data() });
+    });
+    return results;
+  } catch (error) {
+    console.warn("Firestore error fetching tournaments from ncsDb:", error);
+    return [];
+  }
+}
+
+export async function fetchNcsSystemAthletes(): Promise<any[]> {
+  try {
+    const q = query(collection(ncsDb, 'vsc_system_athletes'), limit(150));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      return [];
+    }
+    const results: any[] = [];
+    querySnapshot.forEach((doc) => {
+      results.push({ id: doc.id, ...doc.data() });
+    });
+    return results;
+  } catch (error) {
+    console.warn("Firestore error fetching vsc_system_athletes from ncsDb:", error);
+    return [];
+  }
+}
+
+export async function fetchNcsSystemClubs(): Promise<any[]> {
+  try {
+    const q = query(collection(ncsDb, 'vsc_system_clubs'), limit(150));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      return [];
+    }
+    const results: any[] = [];
+    querySnapshot.forEach((doc) => {
+      results.push({ id: doc.id, ...doc.data() });
+    });
+    return results;
+  } catch (error) {
+    console.warn("Firestore error fetching vsc_system_clubs from ncsDb:", error);
+    return [];
+  }
+}
+
