@@ -122,10 +122,7 @@ export default function MainDashboard() {
         <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl -z-10" />
         
         <div className="max-w-5xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0D1117] border border-slate-800 text-slate-300 text-xs font-semibold rounded-full uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            Trang Chủ Chính Thức Hệ Thống Slingshot Thể Thao
-          </div>
+
           
           <h1 className="text-4xl md:text-6xl font-black font-display tracking-tight text-slate-100 uppercase leading-none">
             CỔNG THÔNG TIN <br />
