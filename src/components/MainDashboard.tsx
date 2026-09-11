@@ -55,7 +55,7 @@ export default function MainDashboard() {
           
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-slate-300">
             <button onClick={scrollToTop} className="text-amber-400 hover:text-slate-100 transition-colors cursor-pointer">Trang Chủ</button>
-            <a href="https://vscs.asia/ncs/" className="hover:text-blue-400 transition-colors">Hệ Thống NCS (All-in-One)</a>
+            <a href="https://vscs.asia/ncs/" className="hover:text-blue-400 transition-colors">Hệ Thống NCS</a>
           </nav>
  
           {/* Desktop Right Actions */}
@@ -103,7 +103,7 @@ export default function MainDashboard() {
               href="https://vscs.asia/ncs/"
               className="text-left py-2 px-3 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition-colors"
             >
-              Hệ Thống NCS (All-in-One)
+              Hệ Thống NCS
             </a>
             <a 
               href="https://vscs.asia/ncs/"
@@ -124,11 +124,11 @@ export default function MainDashboard() {
         <div className="max-w-5xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0D1117] border border-slate-800 text-slate-300 text-xs font-semibold rounded-full uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            Siêu Nền Tảng Ná Cao Su Thể Thao Đã Hợp Nhất 100%
+            Trang Chủ Chính Thức Hệ Thống Slingshot Thể Thao
           </div>
           
           <h1 className="text-4xl md:text-6xl font-black font-display tracking-tight text-slate-100 uppercase leading-none">
-            SIÊU NỀN TẢNG <br />
+            CỔNG THÔNG TIN <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-slate-100 to-blue-400">
               NÁ CAO SU THỂ THAO
             </span> VIỆT NAM
@@ -157,7 +157,7 @@ export default function MainDashboard() {
                     <Target className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase block">Hệ Sinh Thái Đã Hợp Nhất 100%</span>
+                    <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase block">Hệ Sinh Thái Ná Cao Su Việt Nam</span>
                     <h3 className="text-xl md:text-2xl font-black font-display text-slate-100">SLINGSHOT SUPER PORTAL</h3>
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export default function MainDashboard() {
       <section className="bg-[#0D1117] border-y border-slate-900 py-12 px-4">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center space-y-1">
-            <h3 className="text-lg md:text-xl font-bold font-display uppercase text-slate-100">DỮ LIỆU CỘNG ĐỒNG NCS-VSCS-ASIA</h3>
+            <h3 className="text-lg md:text-xl font-bold font-display uppercase text-slate-100">DỮ LIỆU CỘNG ĐỒNG NÁ CAO SU VIỆT NAM</h3>
             <p className="text-xs text-slate-500">Thông số thời gian thực kết nối từ cơ sở dữ liệu Cloud Firestore</p>
           </div>
 
@@ -283,14 +283,14 @@ export default function MainDashboard() {
               <span className="text-3xl block">🛡️</span>
               <span className="block text-2xl md:text-3xl font-black font-mono text-amber-500">{stats.clubs}+</span>
               <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">CLB Đăng Ký</span>
-              <span className="text-[9px] text-slate-500 font-mono block">vsc_system_clubs</span>
+              <span className="text-[9px] text-slate-500 font-mono block">vsc system clubs</span>
             </div>
             
             <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 p-6 rounded-xl text-center space-y-1.5">
               <span className="text-3xl block">🎯</span>
               <span className="block text-2xl md:text-3xl font-black font-mono text-blue-400">{stats.athletes.toLocaleString()}+</span>
               <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Xạ Thủ Hệ Thống</span>
-              <span className="text-[9px] text-slate-500 font-mono block">vsc_system_athletes</span>
+              <span className="text-[9px] text-slate-500 font-mono block">vsc system athletes</span>
             </div>
  
             <div className="bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 p-6 rounded-xl text-center space-y-1.5">
@@ -304,7 +304,7 @@ export default function MainDashboard() {
               <span className="text-3xl block">⚡</span>
               <span className="block text-2xl md:text-3xl font-black font-mono text-blue-400">{stats.challenges.toLocaleString()}+</span>
               <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Thách Đấu PK SOLO</span>
-              <span className="text-[9px] text-slate-500 font-mono block">vsc_pk_challenges</span>
+              <span className="text-[9px] text-slate-500 font-mono block">vsc pk challenges</span>
             </div>
           </div>
         </div>
