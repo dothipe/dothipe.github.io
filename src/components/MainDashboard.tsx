@@ -135,15 +135,71 @@ export default function MainDashboard() {
           </h1>
           
           <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-            Chào mừng bạn đến với <strong>VSCS.ASIA</strong>. Chúng tôi đã chính thức hợp nhất toàn bộ Sân chơi nội bộ Offline và Hệ thống giải đấu toàn quốc vào một cổng duy nhất tại <a href="https://vscs.asia/ncs/" className="text-amber-400 hover:underline font-bold">vscs.asia/ncs/</a>. Trải nghiệm hệ sinh thái xạ thủ chuyên nghiệp và hiện đại hơn bao giờ hết!
+            Chào mừng bạn đến với <strong>VSCS.ASIA</strong>. Nơi đồng hành cùng sự phát triển của môn thể thao bắn ná cao su chuyên nghiệp tại Việt Nam. Kết nối chính quy, tập luyện an toàn, thi đấu công bằng.!
           </p>
 
-          <div className="pt-2">
-            <a 
-              href="https://vscs.asia/ncs/" 
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-blue-600 hover:from-amber-600 hover:to-blue-700 text-slate-950 font-black px-6 py-3 rounded-xl text-xs md:text-sm uppercase tracking-wider shadow-lg shadow-amber-500/10 transition-transform active:scale-95 text-slate-950"
+
+        </div>
+      </section>
+
+{/* Unified Project Gateway Showcase (vscs.asia/ncs/ only) */}
+      <section className="max-w-4xl w-full mx-auto px-4 py-12 space-y-8">
+        <div className="pt-2">
+          {/* SINGLE SHOWCASE BANNER FOR NCS SUPER PORTAL */}
+          <div className="group relative bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 md:p-10 flex flex-col justify-between space-y-8 shadow-xl transition-all duration-300">
+            {/* Top cyan glow element */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-amber-400 to-cyan-400 rounded-t-2xl opacity-80" />
+            
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <Target className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase block">Hệ Sinh Thái Đã Hợp Nhất 100%</span>
+                    <h3 className="text-xl md:text-2xl font-black font-display text-slate-100">SLINGSHOT SUPER PORTAL</h3>
+                  </div>
+                </div>
+                <span className="self-start sm:self-auto text-xs font-black font-mono tracking-wider text-blue-400 uppercase bg-blue-500/5 px-3.5 py-1.5 rounded-lg border border-blue-500/20">
+                  vscs.asia/ncs/
+                </span>
+              </div>
+
+              <p className="text-slate-400 text-sm leading-relaxed max-w-3xl">
+                Nền tảng số hóa toàn diện tích hợp đồng bộ các giải đấu lớn toàn quốc, quản lý hồ sơ vận động viên, xếp hạng Rank ELO chuyên nghiệp, cũng như thiết lập các kèo đấu PK SOLO giao hữu kịch tính giữa các câu lạc bộ trên cả nước.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-xs text-slate-300 border-t border-slate-900/60">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+                    <span>Hệ thống tạo giải đấu tự động (Điều phối bốc thăm, cấp SBD)</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+                    <span>Hồ sơ VĐV định danh số hóa & Quản lý danh sách CLB</span>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+                    <span>Tính năng PK SOLO thách đấu trực tiếp thời gian thực</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+                    <span>Lịch sử tiến trình tập luyện & Thang điểm xếp hạng ELO động</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <a
+              id="ncs-navigate-btn"
+              href="https://vscs.asia/ncs/"
+              className="w-full bg-gradient-to-r from-blue-600 to-amber-500 hover:from-blue-700 hover:to-amber-600 text-slate-950 font-black py-3.5 px-6 rounded-xl text-xs md:text-sm tracking-wider uppercase transition-all shadow-lg shadow-blue-500/10 flex items-center justify-center gap-2.5 cursor-pointer group-hover:scale-[1.01]"
             >
-              <span>Vào Ngay Cổng Hợp Nhất All-In-One</span>
+              <span>VÀO CỔNG LUYỆN TẬP - PK - THI ĐẤU</span>
               <ChevronRight className="w-4 h-4 text-slate-950 stroke-[3]" />
             </a>
           </div>
@@ -152,17 +208,7 @@ export default function MainDashboard() {
 
       {/* Unified Super-Platform Feature Highlights */}
       <section className="max-w-7xl w-full mx-auto px-4 py-12 border-b border-slate-900/60">
-        <div className="text-center space-y-2 mb-10">
-          <span className="text-xs text-blue-400 font-extrabold tracking-widest uppercase bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-            HỆ SINH THÁI ĐỘC QUYỀN
-          </span>
-          <h2 className="text-xl md:text-2xl font-black font-display uppercase tracking-tight text-slate-100">
-            HỆ THỐNG VẬN HÀNH THÔNG MINH
-          </h2>
-          <p className="text-xs text-slate-400 max-w-2xl mx-auto">
-            Mọi giải pháp tổ chức giải đấu, quản lý xạ thủ chuyên nghiệp và rèn luyện kỹ thuật đỉnh cao
-          </p>
-        </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
@@ -221,79 +267,7 @@ export default function MainDashboard() {
         </div>
       </section>
 
-      {/* Unified Project Gateway Showcase (vscs.asia/ncs/ only) */}
-      <section className="max-w-4xl w-full mx-auto px-4 py-12 space-y-8">
-        <div className="text-center space-y-1.5">
-          <span className="text-xs text-blue-400 font-extrabold tracking-widest uppercase bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-            HỆ THỐNG VẬN HÀNH THỐNG NHẤT
-          </span>
-          <h2 className="text-xl md:text-3xl font-black font-display uppercase tracking-tight text-slate-100">
-            CỔNG HỢP NHẤT TRỰC TUYẾN
-          </h2>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">Trải nghiệm hệ sinh thái xạ thủ chuyên nghiệp và hiện đại bậc nhất Việt Nam</p>
-        </div>
-
-        <div className="pt-2">
-          {/* SINGLE SHOWCASE BANNER FOR NCS SUPER PORTAL */}
-          <div className="group relative bg-gradient-to-b from-[#0D1117] to-black border border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 md:p-10 flex flex-col justify-between space-y-8 shadow-xl transition-all duration-300">
-            {/* Top cyan glow element */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-amber-400 to-cyan-400 rounded-t-2xl opacity-80" />
-            
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                    <Target className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-blue-400 font-bold tracking-widest uppercase block">Hệ Sinh Thái Đã Hợp Nhất 100%</span>
-                    <h3 className="text-xl md:text-2xl font-black font-display text-slate-100">NCS SUPER PORTAL</h3>
-                  </div>
-                </div>
-                <span className="self-start sm:self-auto text-xs font-black font-mono tracking-wider text-blue-400 uppercase bg-blue-500/5 px-3.5 py-1.5 rounded-lg border border-blue-500/20">
-                  vscs.asia/ncs/
-                </span>
-              </div>
-
-              <p className="text-slate-400 text-sm leading-relaxed max-w-3xl">
-                Nền tảng số hóa toàn diện tích hợp đồng bộ các giải đấu lớn toàn quốc, quản lý hồ sơ vận động viên, xếp hạng Rank ELO chuyên nghiệp, cũng như thiết lập các kèo đấu PK SOLO giao hữu kịch tính giữa các câu lạc bộ trên cả nước.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-xs text-slate-300 border-t border-slate-900/60">
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
-                    <span>Hệ thống tạo giải đấu tự động (Điều phối bốc thăm, cấp SBD)</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
-                    <span>Hồ sơ VĐV định danh số hóa & Quản lý danh sách CLB</span>
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
-                    <span>Tính năng PK SOLO thách đấu trực tiếp thời gian thực</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
-                    <span>Lịch sử tiến trình tập luyện & Thang điểm xếp hạng ELO động</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <a
-              id="ncs-navigate-btn"
-              href="https://vscs.asia/ncs/"
-              className="w-full bg-gradient-to-r from-blue-600 to-amber-500 hover:from-blue-700 hover:to-amber-600 text-slate-950 font-black py-3.5 px-6 rounded-xl text-xs md:text-sm tracking-wider uppercase transition-all shadow-lg shadow-blue-500/10 flex items-center justify-center gap-2.5 cursor-pointer group-hover:scale-[1.01]"
-            >
-              <span>Truy Cập Ngay Siêu Nền Tảng Hợp Nhất</span>
-              <ChevronRight className="w-4 h-4 text-slate-950 stroke-[3]" />
-            </a>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Stats Bento Grid Grid */}
       <section className="bg-[#0D1117] border-y border-slate-900 py-12 px-4">
